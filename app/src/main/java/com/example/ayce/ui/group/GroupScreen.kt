@@ -1,15 +1,17 @@
 package com.example.ayce.ui.group
 
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -17,17 +19,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.ayce.model.Participant
-
-// Nota de Design:
-// A tela de grupo pode ficar muito poluída (muitos botões).
-// 1. A ação primária ("Adicionar Participante") foi movida para um FAB,
-//    que abre um 'ModalBottomSheet' ou 'Dialog' (aqui usamos um Dialog).
-//    Isso limpa a tela, focando na lista (Divulgação Progressiva).
-// 2. O Card do participante (`ParticipantCard`) foi simplificado.
-//    - Ação primária: O card todo é clicável para adicionar +1.
-//    - Ações secundárias (Resetar, Excluir) são acionadas com 'long press' (clique longo),
-//      abrindo um menu de confirmação. Isso evita cliques acidentais e
-//      remove 2/3 dos botões da tela.
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.ui.graphics.Color
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,33 +37,54 @@ fun GroupScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Grupo: $foodName") },
+                title = {
+                    Text(
+                        text = foodName,
+                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Voltar")
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
+                )
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { showAddDialog = true }) {
-                Icon(Icons.Default.Create, "Adicionar Participante")
-            }
+            ExtendedFloatingActionButton(
+                onClick = { showAddDialog = true },
+                text = { Text("Participante") },
+                icon = { Icon(Icons.Default.Add, contentDescription = null) },
+                containerColor = Color(0xFF4CAF50),
+                contentColor = Color(0xFFFFFFFF)
+            )
         }
     ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .padding(padding)
-                .fillMaxSize(),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(list) { participant ->
-                ParticipantCard(
-                    participant = participant,
-                    onIncrement = { viewModel.increment(participant.id) },
-                    onManage = { participantToManage = participant }
-                )
+
+        if (list.isEmpty()) {
+            EmptyGroupState(
+                modifier = Modifier
+                    .padding(padding)
+                    .fillMaxSize()
+            )
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .padding(padding)
+                    .fillMaxSize(),
+                contentPadding = PaddingValues(20.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                items(list) { participant ->
+                    ParticipantCard(
+                        participant = participant,
+                        onIncrement = { viewModel.increment(participant.id) },
+                        onManage = { participantToManage = participant }
+                    )
+                }
             }
         }
     }
@@ -109,43 +124,87 @@ fun GroupScreen(
 fun ParticipantCard(
     participant: Participant,
     onIncrement: () -> Unit,
-    onManage: () -> Unit // Acionado por Long Press
+    onManage: () -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .combinedClickable(
-                onClick = onIncrement, // Clique simples para a ação mais comum (+1)
-                onLongClick = onManage   // Clique longo para ações secundárias
+                onClick = onIncrement,
+                onLongClick = onManage
             ),
+        shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
+        ),
+        elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Row(
             modifier = Modifier
-                .padding(horizontal = 24.dp, vertical = 32.dp)
+                .padding(horizontal = 20.dp, vertical = 28.dp)
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = participant.name,
-                style = MaterialTheme.typography.titleLarge
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                Spacer(Modifier.width(12.dp))
+                Text(
+                    text = participant.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = "${participant.count}",
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
+                    text = participant.count.toString(),
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold
                 )
                 Spacer(Modifier.width(8.dp))
-                // O Ícone de + é apenas visual, o clique é no card todo
-                Icon(Icons.Default.Add, "Adicionar", tint = MaterialTheme.colorScheme.primary)
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
             }
         }
+    }
+}
+
+@Composable
+private fun EmptyGroupState(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier.padding(32.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+
+        AnimatedVisibility(
+            visible = true,
+            enter = fadeIn(),
+            exit = fadeOut()
+        ) {
+            Text(
+                "Nenhum participante ainda",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        Spacer(Modifier.height(12.dp))
+
+        Text(
+            "Adicione o primeiro usando o botão abaixo",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 
@@ -155,6 +214,7 @@ fun AddParticipantDialog(
     onConfirm: (String) -> Unit
 ) {
     var name by remember { mutableStateOf("") }
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Novo Participante") },
@@ -168,11 +228,16 @@ fun AddParticipantDialog(
             )
         },
         confirmButton = {
-            Button(onClick = { onConfirm(name) }) { Text("Adicionar") }
+            Button(onClick = { onConfirm(name) }) {
+                Text("Adicionar")
+            }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) { Text("Cancelar") }
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.surface,
+        titleContentColor = MaterialTheme.colorScheme.onSurface,
+        textContentColor = MaterialTheme.colorScheme.onSurfaceVariant
     )
 }
 
@@ -189,22 +254,23 @@ fun ManageParticipantDialog(
         title = { Text("Gerenciar: $participantName") },
         text = { Text("O que você gostaria de fazer?") },
         confirmButton = {
-            // Botão de Excluir (ação destrutiva)
             TextButton(
                 onClick = onDelete,
-                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                colors = ButtonDefaults.textButtonColors(
+                    contentColor = MaterialTheme.colorScheme.error
+                )
             ) {
                 Text("Excluir")
             }
         },
         dismissButton = {
-            // Botão de Resetar (ação neutra)
-            TextButton(onClick = onReset) {
-                Text("Resetar Contagem")
-            }
-            // Botão de Cancelar
-            TextButton(onClick = onDismiss) {
-                Text("Cancelar")
+            Column {
+                TextButton(onClick = onReset) {
+                    Text("Resetar Contagem")
+                }
+                TextButton(onClick = onDismiss) {
+                    Text("Cancelar")
+                }
             }
         }
     )

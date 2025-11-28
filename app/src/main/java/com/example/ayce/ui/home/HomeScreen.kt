@@ -135,7 +135,9 @@ fun HomeScreen(
     if (showSheet) {
         ModalBottomSheet(
             sheetState = sheetState,
-            onDismissRequest = { selectedFood = null }
+            onDismissRequest = { selectedFood = null },
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.onSurface
         ) {
             Column(Modifier.padding(24.dp)) {
                 Text(
@@ -181,7 +183,7 @@ fun HomeScreen(
                 val color = (0xFFB0E0E6..0xFFFFFACD).random()
                 onAddFood(name, color, emoji)
                 showAddDialog = false
-            }
+            },
         )
     }
 }
