@@ -7,7 +7,6 @@ import androidx.datastore.dataStore
 import com.example.ayce.model.Food
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import java.io.InputStream
 import java.io.OutputStream
