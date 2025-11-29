@@ -23,6 +23,8 @@ import androidx.compose.ui.unit.sp
 import com.example.ayce.model.Food
 import com.example.ayce.ui.home.components.AddFoodDialog
 import java.util.UUID
+import androidx.compose.ui.draw.shadow
+import androidx.compose.foundation.shape.RoundedCornerShape
 
 // ===============================
 //  HOME ROUTE
@@ -148,7 +150,6 @@ fun HomeScreen(
                 )
 
                 Spacer(Modifier.height(16.dp))
-                Divider()
 
                 ListItem(
                     headlineContent = { Text("Contador Individual") },
@@ -198,13 +199,17 @@ fun FoodCardModern(
 ) {
     Card(
         modifier = Modifier
+            .shadow(
+                elevation = 3.dp,
+                shape = RoundedCornerShape(12.dp),
+                clip = false // importante para aparecer a sombra
+            )
             .fillMaxWidth()
             .animateContentSize()
             .clickable { onClick() },
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant
         ),
-        elevation = CardDefaults.cardElevation(3.dp)
     ) {
         Row(
             Modifier

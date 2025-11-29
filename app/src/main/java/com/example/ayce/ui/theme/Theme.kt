@@ -51,7 +51,7 @@ private val DarkColorScheme = darkColorScheme(
 
 @Composable
 fun AyceTheme(
-    darkTheme: Boolean = true,
+    darkTheme: Boolean = false,
     content: @Composable () -> Unit
 ) {
     MaterialTheme(

@@ -58,8 +58,8 @@ fun GroupScreen(
                 onClick = { showAddDialog = true },
                 text = { Text("Participante") },
                 icon = { Icon(Icons.Default.Add, contentDescription = null) },
-                containerColor = Color(0xFF4CAF50),
-                contentColor = Color(0xFFFFFFFF)
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.surfaceVariant
             )
         }
     ) { padding ->
